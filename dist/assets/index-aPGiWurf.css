@@ -1,0 +1,1 @@
+*{box-sizing:border-box}html,body,#root{min-height:100%;margin:0}body{background:#0c0c0e}button,input,textarea{font:inherit}@media (width<=640px){h1{letter-spacing:.08em!important;font-size:28px!important}button{min-height:38px}}
