@@ -617,7 +617,7 @@ function LoginScreen({ onLogin, onPublic }) {
     <div style={{ width: "100%", maxWidth: 340 }}>
       <div style={{ textAlign: "center", marginBottom: 36 }}>
         <div style={{ fontSize: 44, fontFamily: F.display, color: C.gold, letterSpacing: "0.1em", fontWeight: 600, lineHeight: 1 }}>◈</div>
-        <div style={{ fontSize: 28, fontFamily: F.display, color: C.text, letterSpacing: "0.14em", marginTop: 10 }}>Carrom League</div>
+        <div style={{ fontSize: 28, fontFamily: F.display, color: C.text, letterSpacing: "0.14em", marginTop: 10 }}>Carrom Scheduler</div>
         <div style={{ fontSize: 11, color: C.textDim, letterSpacing: "0.14em", marginTop: 4 }}>SCORE MANAGER</div>
       </div>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 26 }}>
@@ -642,7 +642,7 @@ function PublicView({ leagues, onLoginClick }) {
   return <div style={{ minHeight: "100vh", background: C.bg, fontFamily: F.body, color: C.text }}>
     <div style={{ textAlign: "center", padding: "56px 20px 36px", borderBottom: `1px solid ${C.border}`, background: "linear-gradient(180deg,rgba(201,168,76,0.04) 0%,transparent 100%)" }}>
       <div style={{ fontSize: 52, fontFamily: F.display, color: C.gold, letterSpacing: "0.08em", fontWeight: 600, lineHeight: 1 }}>◈</div>
-      <h1 style={{ fontSize: 36, fontFamily: F.display, fontWeight: 400, letterSpacing: "0.16em", color: C.text, margin: "14px 0 6px" }}>Carrom League</h1>
+      <h1 style={{ fontSize: 36, fontFamily: F.display, fontWeight: 400, letterSpacing: "0.16em", color: C.text, margin: "14px 0 6px" }}>Carrom Scheduler</h1>
       <p style={{ color: C.textMid, fontSize: 11, letterSpacing: "0.14em", margin: "0 0 24px" }}>LIVE RESULTS</p>
       <button onClick={onLoginClick}
         style={{ background: "transparent", border: `1px solid ${C.goldBorder}`, color: C.gold, borderRadius: 8, padding: "10px 24px", cursor: "pointer", fontSize: 12, letterSpacing: "0.08em", fontFamily: F.body }}
