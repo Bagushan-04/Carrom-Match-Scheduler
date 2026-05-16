@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 // ─── Round Robin ──────────────────────────────────────────────────────────────
 function generateRoundRobin(players) {
@@ -694,49 +694,69 @@ function PublicView({ leagues, onLoginClick }) {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [appState, setAppState] = useState({ leagues: {} });
-const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [screen, setScreen] = useState("public");
 
+  // ── Initial load ──────────────────────────────────────────────────────────
   useEffect(() => {
-  async function loadData() {
-    const { data, error } = await supabase
-      .from("app_state")
-      .select("data")
-      .eq("id", 1)
-      .single();
+    async function loadData() {
+      const { data, error } = await supabase
+        .from("app_state")
+        .select("data")
+        .eq("id", 1)
+        .single();
 
-    if (error) {
-      console.error("Load error:", error);
-    } else if (data?.data) {
-      setAppState(data.data);
+      if (error && error.code !== "PGRST116") {
+        // PGRST116 = row not found (first run) — that's fine, we upsert on save
+        console.error("Load error:", error);
+      } else if (data?.data) {
+        setAppState(data.data);
+      }
+      setIsLoaded(true);
     }
+    loadData();
+  }, []);
 
-    setIsLoaded(true);
-  }
+  // ── Realtime subscription — keeps all open tabs in sync ───────────────────
+  useEffect(() => {
+    if (!isLoaded) return;
 
-  loadData();
-}, []);
+    const channel = supabase
+      .channel("app_state_changes")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "app_state", filter: "id=eq.1" },
+        (payload) => {
+          if (payload.new?.data) {
+            setAppState(payload.new.data);
+          }
+        }
+      )
+      .subscribe();
 
-useEffect(() => {
-  if (!isLoaded) return;
+    return () => { supabase.removeChannel(channel); };
+  }, [isLoaded]);
 
-  async function saveData() {
-    const { error } = await supabase
-      .from("app_state")
-      .update({
-        data: appState,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", 1);
+  // ── Save — upsert so first run also works; only runs after load ───────────
+  useEffect(() => {
+    if (!isLoaded) return;
 
-    if (error) {
-      console.error("Save error:", error);
+    async function saveData() {
+      const { error } = await supabase
+        .from("app_state")
+        .upsert(
+          { id: 1, data: appState, updated_at: new Date().toISOString() },
+          { onConflict: "id" }
+        );
+
+      if (error) {
+        console.error("Save error:", error);
+      }
     }
-  }
+    saveData();
+  }, [appState, isLoaded]);
 
-  saveData();
-}, [appState, isLoaded]);
-
+  // ── Navigation helpers ────────────────────────────────────────────────────
   useEffect(() => {
     const h = () => setScreen("public");
     window.addEventListener("viewpublic", h);
@@ -749,6 +769,15 @@ useEffect(() => {
     if (found) { setScreen(`league:${found.id}`); return true; }
     return false;
   };
+
+  if (!isLoaded) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.body }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 44, color: C.gold, marginBottom: 16 }}>◈</div>
+        <div style={{ fontSize: 12, color: C.textDim, letterSpacing: "0.14em" }}>LOADING…</div>
+      </div>
+    </div>
+  );
 
   if (screen === "public") return <PublicView leagues={appState.leagues} onLoginClick={() => setScreen("login")} />;
   if (screen === "login") return <LoginScreen onLogin={tryLogin} onPublic={() => setScreen("public")} />;
