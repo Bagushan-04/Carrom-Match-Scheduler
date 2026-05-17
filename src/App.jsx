@@ -27,30 +27,30 @@ function computeLeaderboard(players, matches) {
     if (!m.winner) return;
     stats[m.p1].played++; stats[m.p2].played++;
     const s1 = Number(m.score1);
-const s2 = Number(m.score2);
-const gap = Math.abs(s1 - s2);
+    const s2 = Number(m.score2);
+    const gap = Math.abs(s1 - s2);
 
-let winnerPoints = 10;
-let loserPoints = 0;
+    let winnerPoints = 10;
+    let loserPoints = 0;
 
-if (gap >= 15) winnerPoints += 3;
+    if (gap >= 15) winnerPoints += 3;
 
-if ((s1 === 25 && s2 === 0) || (s2 === 25 && s1 === 0)) {
-  winnerPoints += 5;
-  loserPoints -= 3;
-}
+    if ((s1 === 25 && s2 === 0) || (s2 === 25 && s1 === 0)) {
+      winnerPoints += 5;
+      loserPoints -= 3;
+    }
 
-if (m.winner === m.p1) {
-  stats[m.p1].won++;
-  stats[m.p1].pts += winnerPoints;
-  stats[m.p2].lost++;
-  stats[m.p2].pts += loserPoints;
-} else {
-  stats[m.p2].won++;
-  stats[m.p2].pts += winnerPoints;
-  stats[m.p1].lost++;
-  stats[m.p1].pts += loserPoints;
-}
+    if (m.winner === m.p1) {
+      stats[m.p1].won++;
+      stats[m.p1].pts += winnerPoints;
+      stats[m.p2].lost++;
+      stats[m.p2].pts += loserPoints;
+    } else {
+      stats[m.p2].won++;
+      stats[m.p2].pts += winnerPoints;
+      stats[m.p1].lost++;
+      stats[m.p1].pts += loserPoints;
+    }
   });
   return Object.values(stats).sort((a, b) => b.pts - a.pts || b.won - a.won);
 }
@@ -159,12 +159,7 @@ const F = {
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 function Toast({ t }) {
   if (!t) return null;
-  return <div style={{
-    position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999,
-    background: t.err ? "#1f0d0d" : "#0d1f16", border: `1px solid ${t.err ? C.red : C.green}`,
-    color: C.text, padding: "10px 22px", borderRadius: 8, fontSize: 12,
-    letterSpacing: "0.06em", fontFamily: F.body, whiteSpace: "nowrap",
-  }}>{t.msg}</div>;
+  return <div className={`toast ${t.err ? "toast--err" : "toast--ok"}`}>{t.msg}</div>;
 }
 
 function useToast() {
@@ -174,21 +169,13 @@ function useToast() {
 }
 
 function Pill({ children, color, bg, border }) {
-  return <span style={{
-    fontSize: 10, letterSpacing: "0.08em", color: color || C.textMid,
-    background: bg || "transparent", border: `1px solid ${border || C.border}`,
-    padding: "2px 8px", borderRadius: 20, fontFamily: F.body,
-  }}>{children}</span>;
+  return <span className="pill" style={{ color, background: bg, borderColor: border }}>{children}</span>;
 }
 
 function Inp({ label, ...p }) {
-  return <div style={{ marginBottom: 16 }}>
-    {label && <div style={{ fontSize: 10, color: C.textMid, letterSpacing: "0.1em", marginBottom: 6, fontFamily: F.body }}>{label}</div>}
-    <input {...p} style={{
-      width: "100%", padding: "11px 14px", background: C.surface,
-      border: `1px solid ${C.border}`, borderRadius: 8, color: C.text,
-      fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: F.body, ...p.style,
-    }}
+  return <div className="inp-wrap">
+    {label && <div className="inp-label">{label}</div>}
+    <input {...p} className="inp-field"
       onFocus={e => e.target.style.borderColor = C.borderActive}
       onBlur={e => e.target.style.borderColor = C.border}
     />
@@ -204,38 +191,29 @@ function Btn({ children, variant = "gold", full = true, small, ...p }) {
     teal: { bg: C.tealBg, color: C.teal, hov: "rgba(91,196,168,0.16)", border: C.tealBorder },
   };
   const s = vs[variant] || vs.gold;
-  return <button {...p} style={{
-    padding: small ? "6px 12px" : "11px 18px", border: s.border || "none",
-    borderRadius: 8, fontSize: small ? 11 : 13, fontWeight: 600, cursor: "pointer",
-    background: s.bg, color: s.color, letterSpacing: "0.05em",
-    width: full ? "100%" : "auto", fontFamily: F.body, ...p.style,
-  }}
+  return <button {...p}
+    className={`btn btn--${variant}${small ? " btn--small" : ""}${full ? " btn--full" : ""}`}
+    style={{ background: s.bg, color: s.color, border: s.border || "none", ...p.style }}
     onMouseEnter={e => e.currentTarget.style.background = s.hov}
     onMouseLeave={e => e.currentTarget.style.background = s.bg}
   >{children}</button>;
 }
 
 function TopBar({ title, subtitle, rightEl }) {
-  return <div style={{
-    background: C.surface, borderBottom: `1px solid ${C.border}`,
-    padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center",
-  }}>
+  return <div className="topbar">
     <div>
-      <div style={{ fontSize: 16, color: C.gold, fontFamily: F.display, letterSpacing: "0.06em", fontWeight: 600 }}>{title}</div>
-      {subtitle && <div style={{ fontSize: 11, color: C.textMid, fontFamily: F.body, marginTop: 2 }}>{subtitle}</div>}
+      <div className="topbar__title">{title}</div>
+      {subtitle && <div className="topbar__subtitle">{subtitle}</div>}
     </div>
     {rightEl}
   </div>;
 }
 
 function TabBar({ tabs, active, onChange }) {
-  return <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, padding: "0 16px", background: C.surface }}>
-    {tabs.map(([k, label]) => <button key={k} onClick={() => onChange(k)} style={{
-      padding: "12px 14px", background: "transparent", border: "none",
-      borderBottom: active === k ? `2px solid ${C.gold}` : "2px solid transparent",
-      color: active === k ? C.gold : C.textMid, fontSize: 12, cursor: "pointer",
-      letterSpacing: "0.06em", fontFamily: F.body, fontWeight: active === k ? 600 : 400, whiteSpace: "nowrap",
-    }}>{label}</button>)}
+  return <div className="tabbar">
+    {tabs.map(([k, label]) => <button key={k} onClick={() => onChange(k)}
+      className={`tabbar__tab${active === k ? " tabbar__tab--active" : ""}`}
+    >{label}</button>)}
   </div>;
 }
 
@@ -247,34 +225,27 @@ function ScoreModal({ match, onSave, onCancel }) {
   const valid = !isNaN(n1) && !isNaN(n2) && n1 !== n2 && n1 >= 0 && n2 >= 0;
   const winner = valid ? (n1 > n2 ? match.p1 : match.p2) : null;
 
-  return <div style={{
-    position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 500,
-    display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
-  }}>
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 28, width: "100%", maxWidth: 360 }}>
-      <div style={{ marginBottom: 20, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: C.textMid, letterSpacing: "0.1em", fontFamily: F.body, marginBottom: 4 }}>{match.roundLabel || `ROUND ${match.round}`}</div>
-        <div style={{ fontSize: 11, color: C.textDim, fontFamily: F.body }}>Enter match score</div>
+  return <div className="modal-overlay">
+    <div className="modal-box">
+      <div className="modal-header">
+        <div className="modal-round-label">{match.roundLabel || `ROUND ${match.round}`}</div>
+        <div className="modal-enter-label">Enter match score</div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 28px 1fr", gap: 10, alignItems: "center", marginBottom: 20 }}>
+      <div className="modal-scores">
         {[{ name: match.p1, val: s1, set: setS1 }, { name: match.p2, val: s2, set: setS2 }].map((pl, i) => [
           <div key={pl.name}>
-            <div style={{ fontSize: 12, color: winner === pl.name ? C.gold : C.textMid, marginBottom: 8, textAlign: "center", fontFamily: F.body, fontWeight: winner === pl.name ? 600 : 400 }}>{pl.name}</div>
+            <div className={`modal-player-name${winner === pl.name ? " modal-player-name--winner" : ""}`}>{pl.name}</div>
             <input type="number" min={0} max={99} value={pl.val} onChange={e => pl.set(e.target.value)} placeholder="0"
-              style={{
-                width: "100%", padding: "16px 4px", background: C.bg,
-                border: `2px solid ${winner === pl.name ? C.gold : C.border}`,
-                borderRadius: 10, color: winner === pl.name ? C.gold : C.text,
-                fontSize: 32, textAlign: "center", outline: "none", boxSizing: "border-box", fontFamily: F.display,
-              }} />
+              className={`modal-score-input${winner === pl.name ? " modal-score-input--winner" : ""}`}
+            />
           </div>,
-          i === 0 && <div key="vs" style={{ textAlign: "center", color: C.textDim, fontSize: 11, fontFamily: F.body }}>VS</div>,
+          i === 0 && <div key="vs" className="modal-vs">VS</div>,
         ])}
       </div>
-      {winner && <div style={{ textAlign: "center", marginBottom: 14, color: C.gold, fontSize: 12, fontFamily: F.body, letterSpacing: "0.06em" }}>✦ {winner} advances</div>}
-      {!isNaN(n1) && !isNaN(n2) && n1 === n2 && s1 !== "" && <div style={{ textAlign: "center", marginBottom: 12, color: C.red, fontSize: 11, fontFamily: F.body }}>No draws allowed</div>}
-      <div style={{ fontSize: 10, color: C.textDim, textAlign: "center", marginBottom: 16, fontFamily: F.body }}>No draws · Winner advances</div>
-      <div style={{ display: "flex", gap: 8 }}>
+      {winner && <div className="modal-winner-msg">✦ {winner} advances</div>}
+      {!isNaN(n1) && !isNaN(n2) && n1 === n2 && s1 !== "" && <div className="modal-no-draw">No draws allowed</div>}
+      <div className="modal-hint">No draws · Winner advances</div>
+      <div className="modal-actions">
         <Btn onClick={() => valid && onSave(n1, n2, winner)} style={{ opacity: valid ? 1 : 0.4 }}>Save result</Btn>
         <Btn variant="ghost" onClick={onCancel} full={false} style={{ flex: 1 }}>Cancel</Btn>
       </div>
@@ -287,38 +258,31 @@ function Leaderboard({ players, matches }) {
   const lb = useMemo(() => computeLeaderboard(players, matches), [players, matches]);
   const medals = ["🥇", "🥈", "🥉"];
   return <div>
-    <div style={{ display: "grid", gridTemplateColumns: "32px 1fr 44px 44px 44px 48px", gap: 6, padding: "0 12px 8px" }}>
-      {["", "Player", "P", "W", "L", "Pts"].map((h, i) => <div key={i} style={{ fontSize: 10, color: C.textDim, letterSpacing: "0.1em", textAlign: i > 1 ? "center" : "left", fontFamily: F.body }}>{h}</div>)}
+    <div className="lb-header">
+      {["", "Player", "P", "W", "L", "Pts"].map((h, i) => <div key={i} className={`lb-header-cell${i > 1 ? " lb-header-cell--right" : ""}`}>{h}</div>)}
     </div>
-    {lb.map((p, i) => <div key={p.name} style={{
-      display: "grid", gridTemplateColumns: "32px 1fr 44px 44px 44px 48px",
-      gap: 6, alignItems: "center", padding: "12px 12px", borderRadius: 8, marginBottom: 4,
-      background: i === 0 ? "rgba(201,168,76,0.06)" : i % 2 === 0 ? C.surface : "transparent",
-      border: `1px solid ${i === 0 ? C.goldBorder : C.border}`,
-    }}>
-      <div style={{ textAlign: "center", fontSize: i < 3 ? 16 : 11 }}>{medals[i] ?? `${i + 1}`}</div>
-      <div style={{ fontSize: 13, fontFamily: F.body, color: i === 0 ? C.gold : C.text, fontWeight: i === 0 ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
-      <div style={{ textAlign: "center", fontSize: 12, color: C.textMid, fontFamily: F.body }}>{p.played}</div>
-      <div style={{ textAlign: "center", fontSize: 12, color: C.green, fontWeight: 600, fontFamily: F.body }}>{p.won}</div>
-      <div style={{ textAlign: "center", fontSize: 12, color: C.red, fontWeight: 600, fontFamily: F.body }}>{p.lost}</div>
-      <div style={{ textAlign: "center", fontSize: 16, color: i === 0 ? C.gold : C.text, fontWeight: 700, fontFamily: F.display }}>{p.pts}</div>
+    {lb.map((p, i) => <div key={p.name}
+      className={`lb-row${i === 0 ? " lb-row--first" : i % 2 === 0 ? " lb-row--even" : ""}`}
+      style={{ border: `1px solid ${i === 0 ? C.goldBorder : C.border}` }}
+    >
+      <div className={`lb-rank${i < 3 ? " lb-rank--medal" : ""}`}>{medals[i] ?? `${i + 1}`}</div>
+      <div className={`lb-name${i === 0 ? " lb-name--first" : ""}`}>{p.name}</div>
+      <div className="lb-cell lb-cell--mid">{p.played}</div>
+      <div className="lb-cell lb-cell--green">{p.won}</div>
+      <div className="lb-cell lb-cell--red">{p.lost}</div>
+      <div className={`lb-pts${i === 0 ? " lb-pts--first" : ""}`}>{p.pts}</div>
     </div>)}
   </div>;
 }
 
 // ─── Bracket Visual ───────────────────────────────────────────────────────────
 function BracketPlayer({ name, score, isWinner, isPending, isBye }) {
-  return <div style={{
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "10px 12px", background: isWinner ? "rgba(201,168,76,0.07)" : "transparent",
-  }}>
-    <span style={{
-      fontSize: 13, fontFamily: F.body,
-      color: isPending || isBye ? C.textDim : isWinner ? C.gold : C.text,
-      fontWeight: isWinner ? 600 : 400, fontStyle: isPending ? "italic" : "normal",
-    }}>{isPending ? "TBD" : isBye ? "BYE" : name}</span>
+  return <div className={`bracket-player${isWinner ? " bracket-player--winner" : ""}`}>
+    <span className={`bracket-player__name${isPending || isBye ? " bracket-player__name--dim" : isWinner ? " bracket-player__name--winner" : ""}${isPending ? " bracket-player__name--pending" : ""}`}>
+      {isPending ? "TBD" : isBye ? "BYE" : name}
+    </span>
     {score !== null && score !== undefined && !isBye && !isPending && (
-      <span style={{ fontSize: 16, fontFamily: F.display, color: isWinner ? C.gold : C.textMid, fontWeight: 700 }}>{score}</span>
+      <span className={`bracket-player__score${isWinner ? " bracket-player__score--winner" : ""}`}>{score}</span>
     )}
   </div>;
 }
@@ -335,41 +299,39 @@ function BracketView({ matches, onMatchClick, adminMode }) {
   const totalRounds = roundNums.length;
   const champion = matches.find(m => m.round === totalRounds)?.winner;
 
-  return <div style={{ overflowX: "auto", paddingBottom: 16 }}>
+  return <div className="bracket-scroll">
     {champion && (
-      <div style={{ textAlign: "center", marginBottom: 24, padding: "14px 20px", background: "rgba(201,168,76,0.08)", border: `1px solid ${C.goldBorder}`, borderRadius: 12 }}>
-        <div style={{ fontSize: 10, color: C.textDim, letterSpacing: "0.12em", fontFamily: F.body, marginBottom: 6 }}>CHAMPION</div>
-        <div style={{ fontSize: 28, color: C.gold, fontFamily: F.display, letterSpacing: "0.08em" }}>🏆 {champion}</div>
+      <div className="bracket-champion">
+        <div className="bracket-champion__label">CHAMPION</div>
+        <div className="bracket-champion__name">🏆 {champion}</div>
       </div>
     )}
 
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", minWidth: totalRounds * 224 }}>
+    <div className="bracket-rounds" style={{ minWidth: totalRounds * 224 }}>
       {roundNums.map((r) => {
         const rMatches = rounds[r];
         const label = getBracketRoundName(r, totalRounds);
-        return <div key={r} style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontSize: 10, color: C.textMid, letterSpacing: "0.12em", fontFamily: F.body, textAlign: "center", marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${C.border}` }}>{label.toUpperCase()}</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        return <div key={r} className="bracket-round">
+          <div className="bracket-round__label">{label.toUpperCase()}</div>
+          <div className="bracket-round__matches">
             {rMatches.map((m) => {
               const canClick = adminMode && m.p1 && m.p2 && !m.isBye;
               const isPending = !m.p1 || !m.p2;
               return <div key={m.id}>
-                <div style={{
-                  background: C.surface, borderRadius: 10, overflow: "hidden",
-                  border: `1px solid ${m.winner && !m.isBye ? C.goldBorder : isPending ? C.border : C.borderActive}`,
-                  opacity: isPending ? 0.5 : 1,
-                }}>
+                <div className={`bracket-match${isPending ? " bracket-match--pending" : ""}`}
+                  style={{ border: `1px solid ${m.winner && !m.isBye ? C.goldBorder : isPending ? C.border : C.borderActive}` }}
+                >
                   <BracketPlayer name={m.p1} score={m.score1} isWinner={m.winner === m.p1} isPending={!m.p1} />
-                  <div style={{ height: 1, background: C.border }} />
+                  <div className="bracket-divider" />
                   <BracketPlayer name={m.p2} score={m.score2} isWinner={m.winner === m.p2} isPending={!m.p2} isBye={m.p2 === "BYE"} />
                 </div>
                 {m.isBye && m.winner && (
-                  <div style={{ textAlign: "right", marginTop: 3 }}>
+                  <div className="bracket-bye-label">
                     <Pill color={C.teal} bg={C.tealBg} border={C.tealBorder}>BYE — auto advance</Pill>
                   </div>
                 )}
                 {canClick && (
-                  <div style={{ marginTop: 6, display: "flex", justifyContent: "center" }}>
+                  <div className="bracket-score-btn">
                     <Btn variant={m.winner ? "ghost" : "gold"} small full={false} onClick={() => onMatchClick(m, label)}>
                       {m.winner ? "Edit score" : "+ Score"}
                     </Btn>
@@ -395,35 +357,32 @@ function RRFixtures({ matches, playable, onScoreClick, adminMode }) {
   return <div>{Object.keys(rounds).sort((a, b) => a - b).map(r => {
     const ms = rounds[r];
     const allDone = ms.every(m => m.winner);
-    return <div key={r} style={{ marginBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
-        <span style={{ fontSize: 11, color: C.textMid, letterSpacing: "0.1em", fontFamily: F.body, fontWeight: 600 }}>ROUND {r}</span>
+    return <div key={r} className="rr-round">
+      <div className="rr-round__header">
+        <span className="rr-round__label">ROUND {r}</span>
         {allDone
           ? <Pill color={C.green} bg={C.greenBg} border={`${C.green}44`}>COMPLETE</Pill>
           : <Pill color={C.gold} bg={C.goldDim} border={C.goldBorder}>IN PROGRESS</Pill>}
       </div>
       {ms.map(m => {
         const canPlay = adminMode || playable.includes(m.id);
-        return <div key={m.id} style={{
-          background: C.surface,
-          border: `1px solid ${m.winner ? C.border : canPlay ? C.goldBorder : C.border}`,
-          borderRadius: 10, padding: "14px 16px",
-          display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6,
-        }}>
-          <div style={{ fontSize: 14, fontFamily: F.body, display: "flex", alignItems: "center", gap: 8 }}>
+        return <div key={m.id} className="rr-match"
+          style={{ border: `1px solid ${m.winner ? C.border : canPlay ? C.goldBorder : C.border}` }}
+        >
+          <div className="rr-match__players">
             {m.winner ? <>
-              <span style={{ color: m.winner === m.p1 ? C.gold : C.textMid, fontWeight: m.winner === m.p1 ? 600 : 400 }}>{m.p1}</span>
-              <span style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "3px 10px", fontSize: 13, color: C.text, fontFamily: F.display }}>{m.score1} – {m.score2}</span>
-              <span style={{ color: m.winner === m.p2 ? C.gold : C.textMid, fontWeight: m.winner === m.p2 ? 600 : 400 }}>{m.p2}</span>
+              <span className={`rr-match__player${m.winner === m.p1 ? " rr-match__player--winner" : ""}`}>{m.p1}</span>
+              <span className="rr-match__score">{m.score1} – {m.score2}</span>
+              <span className={`rr-match__player${m.winner === m.p2 ? " rr-match__player--winner" : ""}`}>{m.p2}</span>
             </> : <>
-              <span style={{ color: canPlay ? C.text : C.textMid }}>{m.p1}</span>
-              <span style={{ color: C.textDim, fontSize: 11 }}>vs</span>
-              <span style={{ color: canPlay ? C.text : C.textMid }}>{m.p2}</span>
+              <span className={`rr-match__player${canPlay ? "" : " rr-match__player--dim"}`}>{m.p1}</span>
+              <span className="rr-match__vs">vs</span>
+              <span className={`rr-match__player${canPlay ? "" : " rr-match__player--dim"}`}>{m.p2}</span>
             </>}
           </div>
           {canPlay
             ? <Btn variant={m.winner ? "ghost" : "gold"} small full={false} onClick={() => onScoreClick(m)}>{m.winner ? "Edit" : "+ Score"}</Btn>
-            : !m.winner && <span style={{ fontSize: 10, color: C.textDim, fontFamily: F.body, letterSpacing: "0.06em" }}>LOCKED</span>}
+            : !m.winner && <span className="rr-match__locked">LOCKED</span>}
         </div>;
       })}
     </div>;
@@ -462,19 +421,19 @@ function LeagueView({ league, onUpdate, onLogout, adminMode = false }) {
     ? <Pill color={C.teal} bg={C.tealBg} border={C.tealBorder}>KNOCKOUT</Pill>
     : <Pill color={C.violet} bg={C.violetBg} border={C.violetBorder}>ROUND ROBIN</Pill>;
 
-  return <div style={{ minHeight: "100vh", background: C.bg, fontFamily: F.body, color: C.text }}>
+  return <div className="screen">
     <Toast t={toast} />
     {scoreMatch && <ScoreModal match={scoreMatch} onSave={handleSave} onCancel={() => setScoreMatch(null)} />}
     <TopBar
       title={`◈ ${league.name}`}
-      subtitle={<span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      subtitle={<span className="topbar__subtitle-inner">
         <span>{completed}/{total} matches played</span>{typeTag}
         {adminMode && <Pill color={C.gold} bg={C.goldDim} border={C.goldBorder}>ADMIN</Pill>}
       </span>}
-      rightEl={onLogout && <button onClick={onLogout} style={{ background: "transparent", border: `1px solid ${C.border}`, color: C.textMid, borderRadius: 7, padding: "6px 14px", cursor: "pointer", fontSize: 11, fontFamily: F.body }}>Logout</button>}
+      rightEl={onLogout && <button onClick={onLogout} className="btn-icon">Logout</button>}
     />
     <TabBar tabs={tabs} active={tab} onChange={setTab} />
-    <div style={{ padding: "24px 16px", maxWidth: league.type === "bracket" ? 900 : 600, margin: "0 auto" }}>
+    <div className="content-area" style={{ maxWidth: league.type === "bracket" ? 900 : 600 }}>
       {tab === "standings" && <Leaderboard players={league.players} matches={league.matches} />}
       {tab === "fixtures" && <RRFixtures matches={league.matches} playable={playable} onScoreClick={setScoreMatch} adminMode={adminMode} />}
       {tab === "bracket" && <BracketView
@@ -520,33 +479,33 @@ function AdminPanel({ state, setState, onClose }) {
 
   const tabs = [["list", "All Leagues"], ["create", "+ New"], ...(sel ? [["manage", sel.name]] : [])];
 
-  return <div style={{ minHeight: "100vh", background: C.bg, fontFamily: F.body, color: C.text }}>
+  return <div className="screen">
     <Toast t={toast} />
     <TopBar title="Admin Console" rightEl={
-      <button onClick={onClose} style={{ background: "transparent", border: `1px solid ${C.violetBorder}`, color: C.violet, borderRadius: 7, padding: "6px 14px", cursor: "pointer", fontSize: 11, fontFamily: F.body }}>Exit</button>
+      <button onClick={onClose} className="btn-icon btn-icon--violet">Exit</button>
     } />
     <TabBar tabs={tabs} active={view} onChange={setView} />
 
-    <div style={{ padding: "24px 16px", maxWidth: 720, margin: "0 auto" }}>
+    <div className="content-area content-area--wide">
 
       {/* LIST */}
       {view === "list" && (leagues.length === 0
-        ? <p style={{ textAlign: "center", color: C.textDim, marginTop: 60 }}>No tournaments yet.</p>
+        ? <p className="empty-msg">No tournaments yet.</p>
         : leagues.map(l => {
           const done = l.matches.filter(m => m.winner && !m.isBye).length;
           const tot = l.matches.filter(m => !m.isBye).length;
-          return <div key={l.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px 20px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ cursor: "pointer", flex: 1 }} onClick={() => { setSelId(l.id); setView("manage"); }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                <span style={{ fontSize: 16, color: C.gold, fontFamily: F.display, letterSpacing: "0.04em" }}>◈ {l.name}</span>
+          return <div key={l.id} className="league-card">
+            <div className="league-card__info" onClick={() => { setSelId(l.id); setView("manage"); }}>
+              <div className="league-card__title-row">
+                <span className="league-card__name">◈ {l.name}</span>
                 {l.type === "bracket"
                   ? <Pill color={C.teal} bg={C.tealBg} border={C.tealBorder}>KNOCKOUT</Pill>
                   : <Pill color={C.violet} bg={C.violetBg} border={C.violetBorder}>ROUND ROBIN</Pill>}
               </div>
-              <div style={{ fontSize: 11, color: C.textMid }}>{l.players.length} players · {done}/{tot} played</div>
-              <div style={{ fontSize: 11, color: C.textDim, marginTop: 3 }}>Login: <span style={{ color: C.textMid }}>{l.username}</span></div>
+              <div className="league-card__meta">{l.players.length} players · {done}/{tot} played</div>
+              <div className="league-card__login">Login: <span className="league-card__login-user">{l.username}</span></div>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="league-card__actions">
               <Btn variant="ghost" small full={false} onClick={() => { setSelId(l.id); setView("manage"); }}>Manage</Btn>
               <Btn variant="danger" small full={false} onClick={() => deleteLeague(l.id)}>Delete</Btn>
             </div>
@@ -555,24 +514,22 @@ function AdminPanel({ state, setState, onClose }) {
       )}
 
       {/* CREATE */}
-      {view === "create" && <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 26 }}>
-        <div style={{ fontSize: 12, color: C.textMid, letterSpacing: "0.08em", marginBottom: 20 }}>NEW TOURNAMENT</div>
+      {view === "create" && <div className="card">
+        <div className="card__section-label">NEW TOURNAMENT</div>
 
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 10, color: C.textMid, letterSpacing: "0.1em", marginBottom: 10 }}>TOURNAMENT FORMAT</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div className="format-picker">
+          <div className="format-picker__label">TOURNAMENT FORMAT</div>
+          <div className="format-picker__grid">
             {[
               ["rr", "Round Robin", "All vs all · Points-based standings", C.violet, C.violetBg, C.violetBorder],
               ["bracket", "Knockout Bracket", "Elimination · Winner advances each round", C.teal, C.tealBg, C.tealBorder],
             ].map(([val, title, desc, col, bg, border]) => (
-              <div key={val} onClick={() => setLtype(val)} style={{
-                padding: "14px 16px", borderRadius: 10, cursor: "pointer",
-                background: ltype === val ? bg : C.bg,
-                border: `2px solid ${ltype === val ? col : C.border}`,
-                transition: "all 0.15s",
-              }}>
-                <div style={{ fontSize: 13, color: ltype === val ? col : C.text, fontWeight: 600, marginBottom: 4 }}>{title}</div>
-                <div style={{ fontSize: 11, color: C.textMid }}>{desc}</div>
+              <div key={val} onClick={() => setLtype(val)}
+                className={`format-option${ltype === val ? " format-option--active" : ""}`}
+                style={ltype === val ? { background: bg, borderColor: col } : {}}
+              >
+                <div className="format-option__title" style={ltype === val ? { color: col } : {}}>{title}</div>
+                <div className="format-option__desc">{desc}</div>
               </div>
             ))}
           </div>
@@ -582,21 +539,21 @@ function AdminPanel({ state, setState, onClose }) {
         <Inp label="LOGIN USERNAME" value={lusr} onChange={e => setLusr(e.target.value)} placeholder="e.g. summercup" />
         <Inp label="LOGIN PASSWORD" type="password" value={lpwd} onChange={e => setLpwd(e.target.value)} placeholder="shared password" />
 
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 10, color: C.textMid, letterSpacing: "0.1em", marginBottom: 6 }}>
+        <div className="players-field">
+          <div className="players-field__label">
             PLAYER NAMES — one per line{ltype === "bracket" ? " (top = #1 seed)" : ""}
           </div>
-          {ltype === "bracket" && <div style={{ fontSize: 11, color: C.teal, marginBottom: 8, padding: "8px 12px", background: "rgba(91,196,168,0.06)", borderRadius: 8, border: `1px solid ${C.tealBorder}` }}>
+          {ltype === "bracket" && <div className="bracket-seed-hint">
             Seed #1 plays the lowest seed, #2 plays second-lowest, etc. Odd counts get byes — higher seeds skip round 1.
           </div>}
           <textarea value={names} onChange={e => setNames(e.target.value)} rows={7}
             placeholder={"Alice\nBob\nCarol\nDave\n..."}
-            style={{ width: "100%", padding: "12px 14px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: F.body }} />
+            className="textarea" />
         </div>
         <Btn variant={ltype === "bracket" ? "teal" : "violet"} onClick={createLeague}>Generate fixtures & create tournament</Btn>
       </div>}
 
-      {/* MANAGE — reuse LeagueView in admin mode, no outer wrapper chrome */}
+      {/* MANAGE */}
       {view === "manage" && sel && (
         <LeagueView
           league={sel}
@@ -613,20 +570,20 @@ function AdminPanel({ state, setState, onClose }) {
 function LoginScreen({ onLogin, onPublic }) {
   const [u, setU] = useState(""); const [p, setP] = useState(""); const [err, setErr] = useState("");
   const go = () => { if (!onLogin(u.trim(), p)) setErr("Invalid credentials"); };
-  return <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.body, padding: 20 }}>
-    <div style={{ width: "100%", maxWidth: 340 }}>
-      <div style={{ textAlign: "center", marginBottom: 36 }}>
-        <div style={{ fontSize: 44, fontFamily: F.display, color: C.gold, letterSpacing: "0.1em", fontWeight: 600, lineHeight: 1 }}>◈</div>
-        <div style={{ fontSize: 28, fontFamily: F.display, color: C.text, letterSpacing: "0.14em", marginTop: 10 }}>Carrom Scheduler</div>
-        <div style={{ fontSize: 11, color: C.textDim, letterSpacing: "0.14em", marginTop: 4 }}>SCORE MANAGER</div>
+  return <div className="auth-screen">
+    <div className="auth-box">
+      <div className="auth-logo">
+        <div className="auth-logo__icon">◈</div>
+        <div className="auth-logo__title">Carrom Scheduler</div>
+        <div className="auth-logo__sub">SCORE MANAGER</div>
       </div>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 26 }}>
+      <div className="card">
         <Inp label="USERNAME" value={u} onChange={e => { setU(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && go()} placeholder="Enter username" />
         <Inp label="PASSWORD" type="password" value={p} onChange={e => { setP(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && go()} placeholder="Enter password" />
-        {err && <div style={{ color: C.red, fontSize: 12, textAlign: "center", marginBottom: 12 }}>{err}</div>}
+        {err && <div className="auth-error">{err}</div>}
         <Btn onClick={go}>Login</Btn>
-        <div style={{ textAlign: "center", marginTop: 16, fontSize: 11, color: C.textDim }}>
-          <span style={{ color: C.gold, cursor: "pointer" }} onClick={onPublic}>← View public results</span>
+        <div className="auth-public-link">
+          <span onClick={onPublic}>← View public results</span>
         </div>
       </div>
     </div>
@@ -639,47 +596,42 @@ function PublicView({ leagues, onLoginClick }) {
   const list = Object.values(leagues);
   const selLeague = sel ? leagues[sel] : null;
 
-  return <div style={{ minHeight: "100vh", background: C.bg, fontFamily: F.body, color: C.text }}>
-    <div style={{ textAlign: "center", padding: "56px 20px 36px", borderBottom: `1px solid ${C.border}`, background: "linear-gradient(180deg,rgba(201,168,76,0.04) 0%,transparent 100%)" }}>
-      <div style={{ fontSize: 52, fontFamily: F.display, color: C.gold, letterSpacing: "0.08em", fontWeight: 600, lineHeight: 1 }}>◈</div>
-      <h1 style={{ fontSize: 36, fontFamily: F.display, fontWeight: 400, letterSpacing: "0.16em", color: C.text, margin: "14px 0 6px" }}>Carrom Scheduler</h1>
-      <p style={{ color: C.textMid, fontSize: 11, letterSpacing: "0.14em", margin: "0 0 24px" }}>LIVE RESULTS</p>
-      <button onClick={onLoginClick}
-        style={{ background: "transparent", border: `1px solid ${C.goldBorder}`, color: C.gold, borderRadius: 8, padding: "10px 24px", cursor: "pointer", fontSize: 12, letterSpacing: "0.08em", fontFamily: F.body }}
+  return <div className="screen">
+    <div className="public-hero">
+      <div className="public-hero__icon">◈</div>
+      <h1 className="public-hero__title">Carrom Scheduler</h1>
+      <p className="public-hero__sub">LIVE RESULTS</p>
+      <button onClick={onLoginClick} className="public-hero__btn"
         onMouseEnter={e => e.currentTarget.style.background = C.goldDim}
         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >Admin / Player login →</button>
     </div>
 
-    <div style={{ maxWidth: 680, margin: "0 auto", padding: "32px 16px 60px" }}>
+    <div className="public-content">
       {list.length === 0
-        ? <p style={{ textAlign: "center", color: C.textDim, marginTop: 40 }}>No active tournaments.</p>
+        ? <p className="empty-msg empty-msg--top">No active tournaments.</p>
         : <>
-          <div style={{ fontSize: 10, color: C.textDim, letterSpacing: "0.12em", textAlign: "center", marginBottom: 20 }}>ACTIVE TOURNAMENTS</div>
+          <div className="section-label">ACTIVE TOURNAMENTS</div>
           {list.map(l => {
             const done = l.matches.filter(m => m.winner && !m.isBye).length;
             const tot = l.matches.filter(m => !m.isBye).length;
             const isOpen = sel === l.id;
-            return <div key={l.id} style={{ marginBottom: 8 }}>
-              <div onClick={() => setSel(isOpen ? null : l.id)} style={{
-                background: isOpen ? "rgba(201,168,76,0.06)" : C.surface,
-                border: `1px solid ${isOpen ? C.goldBorder : C.border}`,
-                borderRadius: isOpen ? "12px 12px 0 0" : 12,
-                padding: "16px 20px", cursor: "pointer",
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-              }}>
+            return <div key={l.id} className="tournament-item">
+              <div onClick={() => setSel(isOpen ? null : l.id)}
+                className={`tournament-item__header${isOpen ? " tournament-item__header--open" : ""}`}
+              >
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                    <span style={{ fontSize: 16, color: isOpen ? C.gold : C.text, fontFamily: F.display, letterSpacing: "0.04em" }}>◈ {l.name}</span>
+                  <div className="tournament-item__title-row">
+                    <span className={`tournament-item__name${isOpen ? " tournament-item__name--open" : ""}`}>◈ {l.name}</span>
                     {l.type === "bracket"
                       ? <Pill color={C.teal} bg={C.tealBg} border={C.tealBorder}>KNOCKOUT</Pill>
                       : <Pill color={C.violet} bg={C.violetBg} border={C.violetBorder}>ROUND ROBIN</Pill>}
                   </div>
-                  <div style={{ fontSize: 11, color: C.textMid }}>{l.players.length} players · {done}/{tot} played</div>
+                  <div className="tournament-item__meta">{l.players.length} players · {done}/{tot} played</div>
                 </div>
-                <span style={{ color: isOpen ? C.gold : C.textDim, fontSize: 14 }}>{isOpen ? "▲" : "▼"}</span>
+                <span className={`tournament-item__chevron${isOpen ? " tournament-item__chevron--open" : ""}`}>{isOpen ? "▲" : "▼"}</span>
               </div>
-              {isOpen && <div style={{ background: C.surface, border: `1px solid ${C.goldBorder}`, borderTop: `1px solid ${C.border}`, borderRadius: "0 0 12px 12px", padding: 20, overflowX: "auto" }}>
+              {isOpen && <div className="tournament-item__body">
                 {l.type === "bracket"
                   ? <BracketView matches={l.matches} adminMode={false} />
                   : <Leaderboard players={l.players} matches={l.matches} />}
@@ -697,7 +649,6 @@ export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [screen, setScreen] = useState("public");
 
-  // ── Initial load ──────────────────────────────────────────────────────────
   useEffect(() => {
     async function loadData() {
       const { data, error } = await supabase
@@ -707,7 +658,6 @@ export default function App() {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        // PGRST116 = row not found (first run) — that's fine, we upsert on save
         console.error("Load error:", error);
       } else if (data?.data) {
         setAppState(data.data);
@@ -717,7 +667,6 @@ export default function App() {
     loadData();
   }, []);
 
-  // ── Realtime subscription — keeps all open tabs in sync ───────────────────
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -737,7 +686,6 @@ export default function App() {
     return () => { supabase.removeChannel(channel); };
   }, [isLoaded]);
 
-  // ── Save — upsert so first run also works; only runs after load ───────────
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -756,7 +704,6 @@ export default function App() {
     saveData();
   }, [appState, isLoaded]);
 
-  // ── Navigation helpers ────────────────────────────────────────────────────
   useEffect(() => {
     const h = () => setScreen("public");
     window.addEventListener("viewpublic", h);
@@ -771,10 +718,10 @@ export default function App() {
   };
 
   if (!isLoaded) return (
-    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.body }}>
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 44, color: C.gold, marginBottom: 16 }}>◈</div>
-        <div style={{ fontSize: 12, color: C.textDim, letterSpacing: "0.14em" }}>LOADING…</div>
+    <div className="loading-screen">
+      <div className="loading-screen__inner">
+        <div className="loading-screen__icon">◈</div>
+        <div className="loading-screen__text">LOADING…</div>
       </div>
     </div>
   );
@@ -785,9 +732,9 @@ export default function App() {
   if (screen.startsWith("league:")) {
     const id = screen.split(":")[1];
     const league = appState.leagues[id];
-    if (!league) return <div style={{ color: C.red, padding: 40, textAlign: "center", fontFamily: F.body }}>
+    if (!league) return <div className="not-found">
       League not found.<br />
-      <button onClick={() => setScreen("public")} style={{ marginTop: 12, background: "transparent", border: `1px solid ${C.border}`, color: C.textMid, padding: "8px 16px", borderRadius: 8, cursor: "pointer" }}>Go Home</button>
+      <button onClick={() => setScreen("public")} className="btn-icon" style={{ marginTop: 12 }}>Go Home</button>
     </div>;
     return <LeagueView league={league}
       onUpdate={l => setAppState(prev => ({ ...prev, leagues: { ...prev.leagues, [id]: l } }))}
